@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+//write a smart contract that implements the require(), assert() and revert() statements.//
+contract MyToken {
+    address public owner;
+    string public name = "domain";
+    string public symbol = "dom";
+    uint public totalSupply = 0;
+
+    // Event declarations
+    event Mint(address indexed to, uint amount);
+    event Burn(address indexed from, uint amount);
+    event Transfer(address indexed from, address indexed to, uint amount);
+
+    // Error declaration
+    error InsufficientBalance(uint balance, uint withdrawAmount);
+
+    // Mapping to track balances
+    mapping(address => uint) public balances;
+
+    // Modifier to restrict access to only the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Access to this action is restricted to the owner");
+        _;
+    }
+
+    // Constructor to set the owner
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Mint function
+    function mint(address _address, uint _value) public onlyOwner {
+        totalSupply += _value;
+        balances[_address] += _value;
+        emit Mint(_address, _value);
+    }
+
+    // Burn function
+    function burn(address _address, uint _value) public onlyOwner {
+        if (balances[_address] < _value) {
+            revert InsufficientBalance({
+                balance: balances[_address],
+                withdrawAmount: _value
+            });
+        } else {
+            totalSupply -= _value;
+            balances[_address] -= _value;
+            emit Burn(_address, _value);
+        }
+    }
+
+    // Transfer function
+    function transfer(address _receiver, uint _value) public {
+        require(balances[msg.sender] >= _value, "Transferred value cannot exceed the account balance!");
+        balances[msg.sender] -= _value;
+        balances[_receiver] += _value;
+        emit Transfer(msg.sender, _receiver, _value);
+    }
+}
